@@ -117,21 +117,51 @@ class Board
     res
   end
 
+  def generate *list
+
+    5.downto(1).each do |size|
+      count = list[size-1]
+      count.times do |t|
+        100.times do |try|
+          
+          begin 
+            head_x = rand(@size_x)
+            head_y = rand(@size_y)
+            dir = rand(4)
+            puts "Getnerating Ship#{size}. Try #{try} #{head_x} #{head_y} #{dir}"
+            put_ship head_x, head_y, size, dir
+            break
+          rescue NotRoomError
+            if try == 100-1
+              raise NotRoomError, "Too much ships"
+            end
+          end
+          break
+        end
+      end
+    end
+
+    list.reverse.each do |count|
+      puts "Ship #{count}"
+    end
+  end
+
 end
 
 
 #LOOK is it good?
 #Some unit tests
 if $0 == __FILE__
-b = Board.new 10, 10
+b1 = Board.new 10, 10
+b2 = Board.new 10, 10
 
-b.put_ship 5, 5, 5, Direction::NORTH
-b.put_ship 7, 6, 2, Direction::EAST
 #        binding.pry
-puts b
+
+b1.generate 5,3,0,0,0#5,4,3,2,1
+b2.generate 5,5,0,0,0#5,4,3,2,1
 
 12.times do |i|
-  puts b.display(i) << "   " << b.display(i)
+  puts b1.display(i) << "   " << b2.display(i)
 end
 
 end
