@@ -25,14 +25,19 @@ class Cell
     end
   end
 
+  def to_s
+    "Cell [#{@col}:#{@row}] State = #{@state}"
+  end
+
 end
 
 
 #Some unit tests
 if $0 == __FILE__
-cell = Cell.new
-
-puts cell.state
+cell = Cell.new 1, 0
 
 cell.state = State::SHIP
+binding.pry
+puts cell
+
 end
