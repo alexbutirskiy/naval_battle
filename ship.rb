@@ -1,5 +1,6 @@
-require "./cell"
+require './cell'
 
+# Ship direction constants
 module Direction
   NORTH = 0
   EAST  = 1
@@ -7,26 +8,20 @@ module Direction
   WEST  = 3
 end
 
+# class Ship describes ship state
 class Ship
   include State
-  def initialize (*cells)
+  def initialize(cells)
     @cells = cells
+    @cells.each { |c| c.state = SHIP }
   end
 
-  def is_alive?
-    @cells.each { |c| if c.state == SHIP then return true end }
+  def alive?
+    @cells.each { |c| return true if c.state == SHIP }
     false
   end
 
-end
-
-
-
-#Some unit tests
-if $0 == __FILE__
-
-s = Ship.new  Cell.new(State::SHIP), Cell.new(State::SHIP), Cell.new(State::SHIP) 
-
-binding.pry
-puts b
+  def include?(cell)
+    @cells.include? cell
+  end
 end
