@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/alex_butirskiy_sea_battle.rb'
+
+Game.new.run

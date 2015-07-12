@@ -1,7 +1,5 @@
-require 'pry'
-
-require './cell'
-require './ship'
+require_relative  'cell'
+require_relative  'ship'
 
 class BoardSizeError < RuntimeError; end
 class OutOfBoardError < RuntimeError; end

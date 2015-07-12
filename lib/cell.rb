@@ -1,5 +1,3 @@
-require 'pry'
-
 # Describes cell states
 module State
   EMPTY   = 0   # Nothing except sea water

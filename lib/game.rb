@@ -1,4 +1,4 @@
-require './board.rb'
+require_relative  'board.rb'
 
 ## Default setting constants
 module Defaults
@@ -132,5 +132,3 @@ class Game
     puts
   end
 end
-
-Game.new.run

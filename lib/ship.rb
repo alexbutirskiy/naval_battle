@@ -1,4 +1,4 @@
-require './cell'
+require_relative  'cell'
 
 # Ship direction constants
 module Direction
