@@ -1,8 +1,8 @@
 require 'pry'
 
-require './cell.rb'
-require './board'
-require './ship'
+require_relative '../lib/cell.rb'
+require_relative '../lib/board'
+require_relative '../lib/ship'
 
 describe Cell, 'lass:' do
   let(:cell) { Cell.new 0, 0 }
