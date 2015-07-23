@@ -119,9 +119,10 @@ class Game
   end
 
   def comp_vs_comp
-    @board[0].player_name = COMPUTER_1_NAME
-    @board[1].player_name = COMPUTER_2_NAME
+    @player_name[0] = @board[0].player_name = COMPUTER_1_NAME
+    @player_name[1] = @board[1].player_name = COMPUTER_2_NAME
     display(*@board)
+    @auto = :ON
     loop do
       result, hit = (@auto == :OFF ? human_shoot : random_shoot)
       return if result == 'QUIT'
@@ -136,8 +137,8 @@ class Game
   end
 
   def human_vs_comp
-    @board[0].player_name = PLAYER_NAME
-    @board[1].player_name = COMPUTER_NAME
+    @player_name[0] = @board[0].player_name = PLAYER_NAME
+    @player_name[1] = @board[1].player_name = COMPUTER_NAME
     system('clear')
     print 'Enter your name: '
     name = gets.chop
@@ -156,8 +157,8 @@ class Game
 
 
   def human_vs_human
-    @board[0].player_name = PLAYER_1_NAME
-    @board[1].player_name = PLAYER_2_NAME
+    @player_name[0] = @board[0].player_name = PLAYER_1_NAME
+    @player_name[1] = @board[1].player_name = PLAYER_2_NAME
     system('clear')
     print 'Enter Players 1 name: '
     name = gets.chop

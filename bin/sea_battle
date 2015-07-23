@@ -2,4 +2,4 @@
 
 require_relative '../lib/alex_butirskiy_sea_battle.rb'
 
-Game.new.run
+Sea_battle::Game.new.run
