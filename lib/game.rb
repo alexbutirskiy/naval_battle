@@ -1,3 +1,5 @@
+require 'pry'
+
 require_relative  'board.rb'
 
 ## Default setting constants
@@ -25,71 +27,88 @@ end
 # Use Game.new.run
 class Game
   include Defaults
-  def initialize
-    @alphabet = ''
-    ('A'..'Z').each { |a| @alphabet << a }
+  def initialize(name_0 = PLAYER_NAME, name_1 = COMPUTER_NAME)
+    @alphabet = ('A'..'Z').map { |a| a }
+    @board = [Board.new(SIZE_X, SIZE_Y, name_0),
+              Board.new(SIZE_X, SIZE_Y, name_1)]
+    @board[0].generate(*SHIPS_COUNT)
+    @board[1].generate(*SHIPS_COUNT)
+    @delay = 1 * 0.2
+    @current_player = 0
+    @player_name = [name_0, name_1]
+    @auto = :OFF
   end
 
-  def display(b1, b2)
+  def display(b1, b2, hide_0 = false, hide_1 = false)
     system('clear')
     (SIZE_Y + 5).times do |i|
-      puts b1.display(i) << ' ' * 3 << b2.display(i)
+      puts b1.display(i, hide_0) << ' ' * 3 << b2.display(i, hide_1)
+    end
+    puts "Turn: #{@player_name[@current_player]}"
+  end
+
+
+  def random_shoot
+    1000.times do
+      shoot = [rand(SIZE_X), rand(SIZE_Y)]
+      result = @board[@current_player - 1].shoot(*shoot)
+      if result != 'ALREADY SHOT'
+        return [result, shoot]
+      end
+    end
+    fail
+  end
+
+  def human_shoot
+    loop do
+      print 'Enter the cell: '
+      inp = gets.chop.upcase
+      if inp == 'QUIT' then return ['QUIT', [0,0]] end
+      if inp == 'AUTO' then return ['AUTO', [0,0]] end
+      x = ('A'..'Z').to_a.index inp[0]
+      y = inp.scan(/\d+/).first
+      if x == nil || y == nil
+        puts 'Wrong format. Example: E5'
+        next
+      end
+
+      begin
+        result = @board[@current_player - 1].shoot(x, y.to_i)
+      rescue OutOfBoardError
+        puts 'You have shot out of board. Try again.'
+        next
+      end
+
+      if result == 'ALREADY SHOT'
+        puts 'You have already shot there. Try again'
+        next
+      end
+      return [result, [x,y]]
     end
   end
 
-  def comp_vs_comp
-    board = [Board.new(SIZE_X, SIZE_Y, COMPUTER_1_NAME),
-             Board.new(SIZE_X, SIZE_Y, COMPUTER_2_NAME)]
+  def shoot 
 
-    board[0].generate(*SHIPS_COUNT)
-    board[1].generate(*SHIPS_COUNT)
+    @auto == :ON ? random_shoot : human_shoot
 
-    player_name = [COMPUTER_1_NAME, COMPUTER_2_NAME]
+  end
 
-    current_player = 0
-    result = ' '
-    auto = :OFF
-    delay = 1
-    loop do
-      if auto == :OFF
-        display(*board)
-        puts "Turn: #{player_name[current_player]}\n"
-        puts "Press:Enter to continue\tQ+Enter - exit\tA+Enter - demo mode"
-        inp = gets.chop
-        case inp
-        when 'Q', 'q' then return
-        when 'A', 'a' then auto = :ON
-        when 'AF', 'af'
-          auto = :ON
-          delay = 0.2
-        end
+  def process_result(result)
+    case result
+    when 'MISSED'
+      @current_player == 0 ? (@current_player = 1) : (@current_player = 0)
+    when 'INJURED'
+      sleep(@delay)
+    when 'KILLED'
+      if @board[@current_player - 1].is_ship_alive? == false
+        congratulation @player_name[@current_player]
+        return 'GAME OVER'
       end
-
-      hit = loop do
-        hit = [rand(SIZE_X), rand(SIZE_Y)]
-        result = board[current_player - 1].shoot(*hit)
-        break hit if result != 'ALREADY SHOT'
-      end
-
-      display(*board)
-      puts "Turn: #{player_name[current_player]}"
-      puts "Hit: #{@alphabet[hit[0]]}#{hit[1]} - #{result}"
-
-      case result
-      when 'MISSED'
-        current_player == 0 ? (current_player = 1) : (current_player = 0)
-      when 'INJURED'
-        sleep(delay)
-        next
-      when 'KILLED'
-        if board[current_player - 1].is_ship_alive? == false
-          congratulation player_name[current_player]
-          return
-        end
-        sleep(delay)
-      end
-      sleep(delay)
+      sleep(@delay)
+    when 'QUIT'
+      return 'QUIT'
     end
+    sleep(@delay)
   end
 
   def congratulation(name)
@@ -99,20 +118,79 @@ class Game
     sleep(2)
   end
 
-  def human_vs_human
-    puts "\nUnder construction. Try later..."
+  def comp_vs_comp
+    @board[0].player_name = COMPUTER_1_NAME
+    @board[1].player_name = COMPUTER_2_NAME
+    display(*@board)
+    loop do
+      result, hit = (@auto == :OFF ? human_shoot : random_shoot)
+      return if result == 'QUIT'
+      if result == 'AUTO'
+        @auto = :ON
+        next
+      end
+      display(*@board)
+      puts "Hit: #{@alphabet[hit[0]]}#{hit[1]} - #{result}"
+      return if process_result(result) == 'GAME OVER'
+    end
   end
 
   def human_vs_comp
-    puts "\nUnder construction. Try later..."
+    @board[0].player_name = PLAYER_NAME
+    @board[1].player_name = COMPUTER_NAME
+    system('clear')
+    print 'Enter your name: '
+    name = gets.chop
+    @player_name[0] = @board[0].player_name = name if name.length != 0
+    display(*@board, false, true)
+    loop do
+      result, hit = (@current_player == 0 ? human_shoot : random_shoot)
+      return if result == 'QUIT'
+
+      display(*@board, false, true)
+      puts "Hit: #{@alphabet[hit[0]]}#{hit[1]} - #{result}"
+      return if process_result(result) == 'GAME OVER'
+    end
+  end
+
+
+
+  def human_vs_human
+    @board[0].player_name = PLAYER_1_NAME
+    @board[1].player_name = PLAYER_2_NAME
+    system('clear')
+    print 'Enter Players 1 name: '
+    name = gets.chop
+    @player_name[0] = @board[0].player_name = name if name.length != 0
+    print 'Enter Players 2 name: '
+    name = gets.chop
+    @player_name[1] = @board[1].player_name = name if name.length != 0
+    player_last = -1
+    hit = nil
+    result = nil
+    loop do
+      if player_last != @current_player
+        player_last = @current_player
+        display(*@board, true, true)
+        
+        puts 'Press Enter when ready'
+        gets
+      end
+
+      @current_player == 0 ? display(*@board, false, true) : display(*@board, true, false)
+      puts "Hit: #{@alphabet[hit[0]]}#{hit[1]} - #{result}" if hit != nil && result != nil
+      result, hit = human_shoot
+      return if result == 'QUIT'
+      @current_player == 0 ? display(*@board, false, true) : display(*@board, true, false)
+      puts "Hit: #{@alphabet[hit[0]]}#{hit[1]} - #{result}"
+      return if process_result(result) == 'GAME OVER'
+    end
   end
 
   def run
     system('clear')
-
     greeting
     input = gets.chop
-
     case input
     when '1' then comp_vs_comp
     when '2' then human_vs_comp

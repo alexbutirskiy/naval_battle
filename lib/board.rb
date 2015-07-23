@@ -11,6 +11,8 @@ class Board
   include Direction
   include State
 
+  attr_accessor :player_name
+
   def initialize(size_x = 10, size_y = 10, name = '')
     unless (1..20).include?(size_x) && (1..20).include?(size_y)
       fail BoardSizeError, 'size should be in (1..20) range'
@@ -115,7 +117,7 @@ class Board
     false
   end
 
-  def display(str)
+  def display(str, hide_ships = false)
     fail TypeError, 'str should be Fixnum' unless str.class == Fixnum
     offset = 2
     res = ''
@@ -132,7 +134,7 @@ class Board
       res << '|'
       @size_x.times do |x|
         case @cells[x][@size_y - 1 - (str - offset)].state
-        when SHIP then res << 'O'
+        when SHIP then hide_ships ? (res << ' ') : (res << 'O')
         when BROKEN then res << 'X'
         when MISSED then res << '*'
         else res << ' '
